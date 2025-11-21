@@ -106,6 +106,9 @@ git clone <YOUR_GIT_URL>
 # Navigate to project directory
 cd uterine-cancer-predictor
 
+# Navigate to frontend directory
+cd frontend
+
 # Install dependencies
 npm install
 
