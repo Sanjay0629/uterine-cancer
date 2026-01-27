@@ -80,12 +80,14 @@ const Predict = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Prediction failed');
+        const errorText = await response.text();
+        console.error("Backend error response:", errorText);
+        throw new Error(`Prediction failed: ${response.status} ${response.statusText}. ${errorText}`);
       }
 
       const result = await response.json();
       console.log("Prediction result:", result);
-      setPredictionResult(result.prediction);
+      setPredictionResult(result);
       setShowResults(true);
 
       // Scroll to results
@@ -94,7 +96,8 @@ const Predict = () => {
       }, 100);
     } catch (error) {
       console.error("Error:", error);
-      alert("Failed to get prediction. Please ensure the backend is running.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      alert(`Failed to get prediction: ${errorMessage}\n\nPlease ensure the backend is running on http://localhost:8000`);
     } finally {
       setIsLoading(false);
     }
@@ -400,91 +403,97 @@ const Predict = () => {
         </Card>
 
         {/* Results Section */}
-        {showResults && predictionResult && (
-          <div id="results" className="mx-auto mt-8 max-w-4xl space-y-6">
-            <h2 className="text-2xl font-bold text-center">Prediction Results</h2>
+        {showResults && predictionResult && (() => {
+          // Extract probability of positive class (Cancer = 1)
+          const p1 = parseFloat(predictionResult.p1) || 0;
+          const riskProbability = p1 * 100; // Convert to percentage
+          
+          // Determine risk level based on thresholds
+          const getRiskLevel = (prob: number): { level: string; color: string; bgColor: string } => {
+            if (prob >= 0.71) {
+              return { level: "High Risk", color: "text-red-600", bgColor: "bg-red-50 border-red-200" };
+            } else if (prob >= 0.31) {
+              return { level: "Moderate Risk", color: "text-orange-600", bgColor: "bg-orange-50 border-orange-200" };
+            } else {
+              return { level: "Low Risk", color: "text-green-600", bgColor: "bg-green-50 border-green-200" };
+            }
+          };
+          
+          const riskInfo = getRiskLevel(p1);
+          const predictedClass = predictionResult.predict === "1" ? "Yes" : "No";
+          
+          return (
+            <div id="results" className="mx-auto mt-8 max-w-4xl space-y-6">
+              <h2 className="text-2xl font-bold text-center">Prediction Results</h2>
 
-            <div className="grid gap-6 md:grid-cols-3">
-              {/* Cancer Presence */}
-              <Card className="border-risk-high bg-risk-high-bg">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5 text-risk-high" />
-                    <CardTitle className="text-sm">Cancer Presence</CardTitle>
-                  </div>
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Risk Probability */}
+                <Card className={`${riskInfo.bgColor} border-2`}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className={`h-5 w-5 ${riskInfo.color}`} />
+                      <CardTitle className="text-sm">Risk Probability</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className={`text-4xl font-bold ${riskInfo.color}`}>
+                      {riskProbability.toFixed(2)}%
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Risk Level */}
+                <Card className={`${riskInfo.bgColor} border-2`}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className={`h-5 w-5 ${riskInfo.color}`} />
+                      <CardTitle className="text-sm">Risk Level</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className={`text-4xl font-bold ${riskInfo.color}`}>
+                      {riskInfo.level}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Clinical Recommendations - Dynamic based on risk level */}
+              <Card className="bg-muted/30">
+                <CardHeader>
+                  <CardTitle className="text-base">Clinical Recommendations</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold text-risk-high">{predictionResult.predict || "Unknown"}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Model confidence: {(() => {
-                      const pred = predictionResult.predict;
-                      const confidence = pred === "1" || pred === 1
-                        ? predictionResult.p1
-                        : predictionResult.p0;
-                      return confidence ? `${(parseFloat(confidence) * 100).toFixed(1)}%` : "N/A";
-                    })()}
-                  </p>
+                <CardContent className="space-y-2 text-sm">
+                  {p1 >= 0.71 ? (
+                    <>
+                      <p className="font-semibold text-red-600">• Immediate referral to oncology specialist</p>
+                      <p>• Comprehensive imaging and biopsy recommended</p>
+                      <p>• Discuss treatment options including surgery and adjuvant therapy</p>
+                      <p>• Schedule follow-up within 2 weeks</p>
+                      <p>• Consider genetic counseling and family history assessment</p>
+                    </>
+                  ) : p1 >= 0.31 ? (
+                    <>
+                      <p className="font-semibold text-orange-600">• Schedule follow-up appointment within 1-2 months</p>
+                      <p>• Consider additional diagnostic imaging</p>
+                      <p>• Monitor symptoms and risk factors closely</p>
+                      <p>• Discuss lifestyle modifications and preventive measures</p>
+                      <p>• Regular screening recommended</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-semibold text-green-600">• Continue routine screening as recommended</p>
+                      <p>• Maintain healthy lifestyle and regular check-ups</p>
+                      <p>• Monitor any changes in symptoms</p>
+                      <p>• Follow standard preventive care guidelines</p>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
-              {/* Risk Level */}
-              <Card className="border-risk-high bg-risk-high-bg">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-risk-high" />
-                    <CardTitle className="text-sm">Risk Level</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold text-risk-high">
-                    {predictionResult.p1 && parseFloat(predictionResult.p1) > 0.7 ? "High" :
-                      predictionResult.p1 && parseFloat(predictionResult.p1) > 0.3 ? "Moderate" : "Low"}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Based on probability score
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* 1-Year Recurrence */}
-              <Card className="border-risk-moderate bg-risk-moderate-bg">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-risk-moderate" />
-                    <CardTitle className="text-sm">1-Year Recurrence</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold text-risk-moderate">
-                    {/* Placeholder logic as model might not provide this */}
-                    {predictionResult.recurrence || "Not Assessed"}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Requires longitudinal data
-                  </p>
-                </CardContent>
-              </Card>
             </div>
-
-            <Card className="bg-muted/30">
-              <CardHeader>
-                <CardTitle className="text-base">Clinical Recommendations</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <p>• Immediate referral to oncology specialist</p>
-                <p>• Comprehensive imaging and biopsy recommended</p>
-                <p>• Discuss treatment options including surgery and adjuvant therapy</p>
-                <p>• Schedule follow-up within 2 weeks</p>
-              </CardContent>
-            </Card>
-
-            <div className="text-center text-sm text-muted-foreground">
-              <p>
-                Raw Output: {JSON.stringify(predictionResult)}
-              </p>
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );

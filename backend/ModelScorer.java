@@ -55,9 +55,14 @@ public class ModelScorer {
             // Assuming a binomial classification model (adjust if regression or multinomial)
             BinomialModelPrediction p = model.predictBinomial(row);
 
-            // Print a single numeric value (probability of positive class) to stdout
-            double positiveProb = p.classProbabilities[1];
-            System.out.println(positiveProb);
+            // Output both probabilities and predicted class as JSON-like format
+            // Format: p0,p1,predict (where predict is "0" or "1")
+            double p0 = p.classProbabilities[0];
+            double p1 = p.classProbabilities[1];
+            String predict = p.label; // This is the predicted class label ("0" or "1")
+            
+            // Output: p0,p1,predict
+            System.out.println(p0 + "," + p1 + "," + predict);
 
         } catch (PredictException e) {
             e.printStackTrace();

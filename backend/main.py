@@ -2,8 +2,9 @@ from pathlib import Path
 import subprocess
 from typing import List, Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 
@@ -33,7 +34,9 @@ class PredictRequest(BaseModel):
 
 
 class PredictResponse(BaseModel):
-    prediction: float
+    predict: str  # "0" or "1"
+    p0: float  # Probability of class 0
+    p1: float  # Probability of class 1
     raw_output: str | None = None
 
 
@@ -41,16 +44,38 @@ app = FastAPI(title="Uterine Cancer Prediction API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+@app.options("/predict")
+async def options_predict(request: Request):
+    """Handle CORS preflight for /predict endpoint"""
+    return JSONResponse(
+        content={"status": "ok"},
+        headers={
+            "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Max-Age": "3600",
+        },
+    )
 
 
 def _normalize_categoricals(payload: PredictRequest) -> PredictRequest:
@@ -141,15 +166,27 @@ def run_java_scorer(features: List[Any]) -> PredictResponse:
 
     stdout = result.stdout.strip()
     try:
-        prediction_value = float(stdout)
-    except ValueError:
+        # Parse output format: "p0,p1,predict"
+        parts = stdout.split(",")
+        if len(parts) != 3:
+            raise ValueError(f"Expected 3 comma-separated values, got {len(parts)}")
+        
+        p0 = float(parts[0])
+        p1 = float(parts[1])
+        predict = parts[2].strip()
+        
+        # Validate predict is "0" or "1"
+        if predict not in ["0", "1"]:
+            raise ValueError(f"Expected predict to be '0' or '1', got '{predict}'")
+            
+    except ValueError as e:
         # If parsing fails, return raw output for debugging
         raise HTTPException(
             status_code=500,
-            detail=f"Unexpected scorer output: {stdout}",
+            detail=f"Unexpected scorer output: {stdout}. Error: {str(e)}",
         )
 
-    return PredictResponse(prediction=prediction_value, raw_output=stdout)
+    return PredictResponse(predict=predict, p0=p0, p1=p1, raw_output=stdout)
 
 
 @app.post("/predict", response_model=PredictResponse)
