@@ -1,14 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Brain, Shield, TrendingUp, Upload } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { toast } from "@/components/ui/sonner";
+import { Activity, Brain, ChevronDown, Shield, TrendingUp, Upload } from "lucide-react";
 
 const Index = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
+
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-medical-blue-light to-background py-20">
         <div className="container mx-auto px-4">
@@ -21,12 +25,12 @@ const Index = () => {
               Uterine Cancer Risk Predictor
             </h1>
             <p className="mb-8 text-lg text-muted-foreground md:text-xl">
-              Advanced machine learning system for early detection and risk assessment 
+              Advanced machine learning system for early detection and risk assessment
               of uterine cancer using comprehensive clinical data
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Button asChild size="lg" className="text-base">
-                <Link to="/predict">Start Prediction</Link>
+                <Link to="/synthetic">Start Prediction</Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="text-base">
                 <Link to="/about">Learn More</Link>
@@ -170,26 +174,50 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <Card className="mx-auto max-w-3xl border-primary/20 bg-gradient-to-br from-medical-blue-light to-background">
+      {/* CTA Section (Updated per your request) */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-medical-blue-light to-background py-20">
+        <div className="container mx-auto px-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+          <Card className="mx-auto max-w-3xl border-primary/20 bg-gradient-to-br from-medical-blue-light to-background shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl">Ready to Get Started?</CardTitle>
+              <CardTitle className="text-4xl">Ready to Get Started?</CardTitle>
               <CardDescription className="text-base">
                 Begin assessing uterine cancer risk with our advanced prediction system
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Button asChild size="lg">
-                <Link to="/predict">Start Prediction</Link>
+              <Button size="lg" className="text-base" onClick={() => navigate("/synthetic")}>
+                Start Prediction
               </Button>
-              <Button asChild variant="outline" size="lg" disabled>
-                <div className="cursor-not-allowed">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Model (Coming Soon)
-                </div>
-              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="lg" className="text-base">
+                    <Upload className="mr-2 h-4 w-4" />
+                    Select Decision Support Module
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-72 bg-popover">
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => navigate("/molecular")}
+                  >
+                    Molecular Prognostic Module (TCGA-UCEC)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => navigate("/imaging")}
+                  >
+                    Imaging Analysis Module (Ultrasound CNN)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => toast("Coming Soon", { description: "Upload Custom Model is not available yet." })}
+                  >
+                    Upload Custom Model
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </CardContent>
           </Card>
         </div>

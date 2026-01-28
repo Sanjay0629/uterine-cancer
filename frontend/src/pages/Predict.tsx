@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ interface PredictionFormData {
 }
 
 const Predict = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [predictionResult, setPredictionResult] = useState<any>(null);
@@ -108,8 +110,18 @@ const Predict = () => {
       <Navigation />
 
       <div className="container mx-auto px-4 py-8">
+        <Button
+          variant="ghost"
+          className="mb-6 px-0 text-primary hover:text-primary/80 hover:bg-transparent"
+          onClick={() => navigate("/")}
+        >
+          ← Back to Model Selection
+        </Button>
+
         <div className="mb-8 text-center">
-          <h1 className="mb-2 text-4xl font-bold text-foreground">Risk Assessment</h1>
+          <h1 className="mb-2 text-4xl font-bold text-foreground">
+            Synthetic Uterine Cancer Prediction
+          </h1>
           <p className="text-muted-foreground">
             Enter patient clinical data to assess uterine cancer risk
           </p>
