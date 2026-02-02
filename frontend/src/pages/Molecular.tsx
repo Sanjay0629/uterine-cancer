@@ -9,14 +9,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, CheckCircle2, AlertTriangle, Loader2, Dna, Activity, TrendingUp, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MolecularFormData {
   diagnosisAge: number;
   mutationCount: number;
   msiMantisScore: number;
-  tmbNonsynonymous: number;
+  msiSensorScore: number;
   fractionGenomeAltered: number;
-  aneuploidyScore: number;
+  raceCategory: string; // Select returns string, will parse if needed
 }
 
 const Molecular = () => {
@@ -24,12 +25,12 @@ const Molecular = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [predictionResult, setPredictionResult] = useState<any>(null);
-  const { register, handleSubmit, formState: { errors } } = useForm<MolecularFormData>();
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<MolecularFormData>();
 
   const onSubmit = async (data: MolecularFormData) => {
     setIsLoading(true);
     setShowResults(false);
-    
+
     // Simulate API call with mock data
     setTimeout(() => {
       const mockResponse = {
@@ -43,11 +44,11 @@ const Molecular = () => {
           risk_category: "Low Risk"
         }
       };
-      
+
       setPredictionResult(mockResponse);
       setShowResults(true);
       setIsLoading(false);
-      
+
       // Scroll to results
       setTimeout(() => {
         document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
@@ -80,7 +81,7 @@ const Molecular = () => {
     }
   };
 
-  const subtypeInfo = predictionResult?.molecular_subtype 
+  const subtypeInfo = predictionResult?.molecular_subtype
     ? getSubtypeColor(predictionResult.molecular_subtype.predicted_class)
     : null;
   const riskInfo = predictionResult?.survival?.risk_category
@@ -217,36 +218,35 @@ const Molecular = () => {
                   )}
                 </div>
 
-                {/* TMB Nonsynonymous */}
+                {/* MSIsensor Score */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="tmbNonsynonymous">TMB Nonsynonymous</Label>
+                    <Label htmlFor="msiSensorScore">MSIsensor Score</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
                           <Info className="h-4 w-4 text-muted-foreground" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Tumor Mutational Burden - nonsynonymous mutations per MB</p>
+                          <p>Microsatellite Instability Sensor Score</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </div>
                   <Input
-                    id="tmbNonsynonymous"
+                    id="msiSensorScore"
                     type="number"
-                    step="0.1"
-                    placeholder="12.5"
-                    {...register("tmbNonsynonymous", {
-                      required: "TMB Nonsynonymous is required",
+                    step="0.01"
+                    placeholder="0.45"
+                    {...register("msiSensorScore", {
+                      required: "MSIsensor Score is required",
                       min: { value: 0.0, message: "Minimum is 0.0" },
-                      max: { value: 100.0, message: "Maximum is 100.0" },
                       valueAsNumber: true
                     })}
-                    className={errors.tmbNonsynonymous ? "border-red-500" : ""}
+                    className={errors.msiSensorScore ? "border-red-500" : ""}
                   />
-                  {errors.tmbNonsynonymous && (
-                    <p className="text-sm text-red-500">{errors.tmbNonsynonymous.message}</p>
+                  {errors.msiSensorScore && (
+                    <p className="text-sm text-red-500">{errors.msiSensorScore.message}</p>
                   )}
                 </div>
 
@@ -283,36 +283,39 @@ const Molecular = () => {
                   )}
                 </div>
 
-                {/* Aneuploidy Score */}
+                {/* Race Category */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="aneuploidyScore">Aneuploidy Score</Label>
+                    <Label htmlFor="raceCategory">Race Category</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
                           <Info className="h-4 w-4 text-muted-foreground" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Measure of chromosomal instability (0.0-30.0)</p>
+                          <p>Patient's racial category</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <Input
-                    id="aneuploidyScore"
-                    type="number"
-                    step="0.1"
-                    placeholder="8.5"
-                    {...register("aneuploidyScore", {
-                      required: "Aneuploidy Score is required",
-                      min: { value: 0.0, message: "Minimum is 0.0" },
-                      max: { value: 30.0, message: "Maximum is 30.0" },
-                      valueAsNumber: true
-                    })}
-                    className={errors.aneuploidyScore ? "border-red-500" : ""}
+                  <Select onValueChange={(value) => setValue("raceCategory", value)}>
+                    <SelectTrigger className={errors.raceCategory ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Select race category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">0 - Asian</SelectItem>
+                      <SelectItem value="1">1 - Black or African American</SelectItem>
+                      <SelectItem value="2">2 - Native Hawaiian or Other Pacific Islander</SelectItem>
+                      <SelectItem value="3">3 - Unknown</SelectItem>
+                      <SelectItem value="4">4 - White</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <input
+                    type="hidden"
+                    {...register("raceCategory", { required: "Race category is required" })}
                   />
-                  {errors.aneuploidyScore && (
-                    <p className="text-sm text-red-500">{errors.aneuploidyScore.message}</p>
+                  {errors.raceCategory && (
+                    <p className="text-sm text-red-500">{errors.raceCategory.message}</p>
                   )}
                 </div>
               </div>
@@ -362,8 +365,8 @@ const Molecular = () => {
                       Confidence: {(predictionResult.molecular_subtype.confidence * 100).toFixed(1)}%
                     </p>
                     <div className="mt-4">
-                      <Progress 
-                        value={predictionResult.molecular_subtype.confidence * 100} 
+                      <Progress
+                        value={predictionResult.molecular_subtype.confidence * 100}
                         className="h-2"
                       />
                     </div>
@@ -397,8 +400,8 @@ const Molecular = () => {
                       Survival Probability: {(predictionResult.survival.survival_probability * 100).toFixed(1)}%
                     </p>
                     <div className="mt-4">
-                      <Progress 
-                        value={predictionResult.survival.survival_probability * 100} 
+                      <Progress
+                        value={predictionResult.survival.survival_probability * 100}
                         className="h-2"
                       />
                     </div>
