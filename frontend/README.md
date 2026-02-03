@@ -2,241 +2,102 @@
 
 ## 🎯 Project Overview
 
-An advanced **Uterine Cancer Risk Prediction System** designed to assess cancer risk using comprehensive clinical and pathological features. This application currently features a complete **frontend interface** (Design Phase) with planned integration of **H2O.ai AutoML** for real-time machine learning predictions.
+An advanced **Uterine Cancer Risk Prediction System** designed to assess cancer risk using comprehensive clinical, molecular, and imaging data. This application serves as a unified platform for three distinct decision support modules.
 
 **Live Demo**: [https://lovable.dev/projects/c6497165-f2a1-4a5d-831d-2413e4a4ed24](https://lovable.dev/projects/c6497165-f2a1-4a5d-831d-2413e4a4ed24)
 
 ---
 
-## 🚀 Current Features (Frontend - v1.0)
+## 🚀 Decision Support Modules
 
-### Pages & Functionality
+### 1. Clinical Risk Prediction (`/synthetic`)
+*Status: Frontend Complete, Backend Mocked*
+-   **Purpose**: Assessing general cancer risk using non-invasive clinical features.
+-   **Features**:
+    -   19-point comprehensive clinical form (Demographics, Symptoms, Medical History).
+    -   Real-time validation.
+    -   Risk stratification (Low/Medium/High).
+    -   **AI Engine**: H2O.ai AutoML (Planned).
 
-1. **Home Page** (`/`)
-   - Project overview with clear call-to-action
-   - Feature highlights (AI-powered, clinical-grade, comprehensive)
-   - How it works section (3-step process)
-   - Responsive hero section with medical-themed design
+### 2. Molecular Prognostic Module (`/molecular`)
+*Status: Fully Integrated*
+-   **Purpose**: Predicting molecular subtypes (POLE, MSI, CN-Low, CN-High) and survival outcomes.
+-   **Features**:
+    -   Targeted input for TCGA-specific biomarkers (Mutation Count, MSI Scores, etc.).
+    -   **Backend**: Flask API with XGBoost/RandomForest models.
+    -   **Outputs**:
+        -   Molecular Subtype Classification.
+        -   Survival Probability & Risk Category.
+        -   Confidence Scores.
 
-2. **Prediction Form** (`/predict`)
-   - Comprehensive input form with 19 clinical features:
-     - **Demographics**: PatientID, Age, BMI, Menopause Status
-     - **Symptoms**: Abnormal Bleeding, Pelvic Pain, Vaginal Discharge, Weight Loss
-     - **Medical History**: Hypertension, Diabetes, Family History, Smoking, Estrogen Therapy
-     - **Clinical Measurements**: Endometrium Thickness, CA125 Level, Parity, Gravidity
-     - **Pathology**: Histology Type, Hormone Receptor Status
-   - Form validation with React Hook Form
-   - Loading animation during prediction
-   - Color-coded results display (Green/Orange/Red risk levels)
-   - Clinical recommendations
-
-3. **About Page** (`/about`)
-   - System overview and technology stack
-   - Model performance metrics (PR-AUC focus)
-   - Planned visualizations (ROC curves, feature importance, confusion matrix)
-   - Input features breakdown
-   - Future enhancement roadmap
-
-### Design System
-
-- **Medical-Grade UI**: Professional healthcare aesthetic
-- **Color Palette**:
-  - Primary: Soft medical blue (`hsl(210 85% 45%)`)
-  - Risk levels: Green (low), Orange (moderate), Red (high)
-  - Clean backgrounds with subtle gradients
-- **Typography**: Clear, readable fonts optimized for clinical use
-- **Responsive**: Mobile-first design, works on all devices
-- **Accessibility**: High contrast, semantic HTML
+### 3. Imaging Analysis Module (`/imaging`)
+*Status: Initial Design*
+-   **Purpose**: Deep learning analysis of ultrasound/MRI images.
+-   **Features**:
+    -   Image upload interface.
+    -   **AI Engine**: Convolutional Neural Networks (CNN) (Planned).
 
 ---
 
 ## 🛠️ Technology Stack
 
-### Frontend (Current)
-- **React 18** - Modern UI library
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first styling
-- **shadcn/ui** - High-quality component library
-- **React Hook Form** - Form validation
-- **React Router** - Client-side routing
-- **Vite** - Fast build tool
+### Frontend
+-   **Framework**: React 18 + TypeScript + Vite
+-   **Styling**: Tailwind CSS + shadcn/ui
+-   **State/Routing**: React Router, React Hook Form
+-   **Visuals**: Lucide Icons, Custom Medical Design System
 
-### Backend (Planned)
-- **H2O.ai AutoML** - Machine learning engine
-- **FastAPI** - Python web framework
-- **MOJO** - Model deployment format
-- **SHAP** - Model explainability
-- **PostgreSQL** - Database
-
----
-
-## 📊 Machine Learning Details
-
-### Target Variable
-- **HasCancer** (Yes/No) - Binary classification target
-
-### Input Features (19 total)
-All features listed in the prediction form are used for model training.
-
-### Evaluation Metrics
-- **Primary**: PR-AUC (Precision-Recall Area Under Curve)
-  - Optimal for imbalanced medical datasets
-  - Focuses on positive class performance
-- **Secondary**: Sensitivity (Recall), Specificity, ROC-AUC, Accuracy
-
-### Model Explainability
-- SHAP values for feature importance
-- ROC and PR curves
-- Confusion matrix analysis
+### Backend Services
+1.  **Molecular API** (Active):
+    -   Python Flask
+    -   scikit-learn, XGBoost
+    -   RESTful Endpoints
+2.  **Clinical API** (Planned):
+    -   FastAPI
+    -   H2O.ai MOJO
+3.  **Database** (Planned):
+    -   PostgreSQL
 
 ---
 
 ## 🏃 Getting Started
 
 ### Prerequisites
-- Node.js >= 18.0.0
-- npm or yarn
+-   Node.js >= 18.0.0
+-   Python 3.10+ (for Molecular backend)
 
-### Installation
-
+### 1. Setup Frontend
 ```bash
-# Clone the repository
-git clone <YOUR_GIT_URL>
-
-# Navigate to project directory
-cd uterine-cancer-predictor
-
-# Navigate to frontend directory
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
+The application will launch at `http://localhost:8080`.
 
-The application will be available at `http://localhost:8080`
-
-### Build for Production
-
+### 2. Setup Molecular Backend
+To enable predictions for the Molecular Module:
 ```bash
-npm run build
+cd backend/tcga-ml
+# Windows
+.\start.bat
+# Linux/Mac
+./start.sh
 ```
+The API serves at `http://localhost:5000`.
 
 ---
 
-## 📁 Project Structure
+## 🔮 Future Roadmap
 
-```
-src/
-├── components/
-│   ├── ui/                 # shadcn/ui components
-│   └── Navigation.tsx      # Main navigation component
-├── pages/
-│   ├── Index.tsx          # Home page
-│   ├── Predict.tsx        # Prediction form & results
-│   ├── About.tsx          # About/methodology page
-│   └── NotFound.tsx       # 404 page
-├── hooks/                 # Custom React hooks
-├── lib/                   # Utility functions
-├── index.css             # Global styles & design system
-└── App.tsx               # Main app component with routing
-```
-
----
-
-## 🔮 Future Development
-
-### Phase 2: Backend Integration
-- [ ] FastAPI server setup
-- [ ] H2O.ai AutoML model training
-- [ ] MOJO model deployment
-- [ ] REST API endpoints (`/predict`, `/upload-model`, `/metrics`)
-- [ ] Database integration (patient history)
-
-### Phase 3: Advanced Features
-- [ ] Real-time predictions with confidence scores
-- [ ] Interactive model explainability dashboards
-- [ ] Custom model upload (MOJO/H2O format)
-- [ ] PDF report generation
-- [ ] Historical prediction tracking
-- [ ] User authentication & role management
-- [ ] Multi-language support
-
----
-
-## 🔒 API Design (Backend - Coming Soon)
-
-### POST /predict
-**Request:**
-```json
-{
-  "PatientID": "P001",
-  "Age": 55,
-  "BMI": 26.8,
-  "MenopauseStatus": "Post-menopausal",
-  "AbnormalBleeding": "Yes",
-  "PelvicPain": "No",
-  "ThickEndometrium": 14.5,
-  "Hypertension": "Yes",
-  "Diabetes": "No",
-  "FamilyHistoryCancer": "Yes",
-  "Smoking": "No",
-  "EstrogenTherapy": "Yes",
-  "CA125_Level": 38.2,
-  "HistologyType": "Endometrioid",
-  "Parity": 2,
-  "Gravidity": 3,
-  "HormoneReceptorStatus": "Positive",
-  "VaginalDischarge": "Yes",
-  "UnexplainedWeightLoss": "No"
-}
-```
-
-**Response:**
-```json
-{
-  "cancer_presence": "Yes",
-  "risk_level": "High",
-  "one_year_recurrence": "Likely",
-  "confidence": 0.87,
-  "feature_importance": {...},
-  "recommendations": [...]
-}
-```
-
----
-
-## 📖 Design Decisions
-
-### Why PR-AUC over ROC-AUC?
-In medical diagnostics with imbalanced datasets (cancer is rare), PR-AUC provides more meaningful performance metrics by focusing on the precision-recall trade-off for positive cases.
-
-### Static Results (Current Version)
-The frontend currently displays **mock prediction results** to demonstrate the user experience. This will be replaced with real H2O.ai model predictions once the backend is integrated.
-
-### Medical Design Theme
-The UI uses soft blues, clean typography, and generous whitespace to create a professional, trustworthy interface appropriate for clinical settings.
+-   [ ] **Clinical Backend**: Integrate H2O.ai models with FastAPI.
+-   [ ] **Imaging Backend**: Deploy CNN models for image analysis.
+-   [ ] **Unified Database**: Patient history and longitudinal tracking.
+-   [ ] **Report Generation**: PDF export for clinical records.
 
 ---
 
 ## 🤝 Contributing
-
-This is a design phase prototype. Contributions for UI improvements, bug fixes, and documentation are welcome.
-
----
+This is a research prototype. Contributions are welcome for both UI enhancements and ML model improvements.
 
 ## 📄 License
-
-This project is for educational and research purposes.
-
----
-
-## 📞 Support
-
-For questions or issues, please open an issue on the repository.
-
----
-
-**Note**: This application is in the **Design Phase**. The backend with H2O.ai AutoML integration will be implemented in future versions. Current predictions are simulated for demonstration purposes only.
+Educational and Research Use Only.
