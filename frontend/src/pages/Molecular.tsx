@@ -30,30 +30,41 @@ const Molecular = () => {
   const onSubmit = async (data: MolecularFormData) => {
     setIsLoading(true);
     setShowResults(false);
+    setPredictionResult(null);
 
-    // Simulate API call with mock data
-    setTimeout(() => {
-      const mockResponse = {
-        molecular_subtype: {
-          predicted_class: "CN_HIGH",
-          confidence: 0.92
+    try {
+      const response = await fetch('http://localhost:5000/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        survival: {
-          prediction: "Living",
-          survival_probability: 0.85,
-          risk_category: "Low Risk"
-        }
-      };
+        body: JSON.stringify(data),
+      });
 
-      setPredictionResult(mockResponse);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const result = await response.json();
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      setPredictionResult(result);
       setShowResults(true);
-      setIsLoading(false);
 
       // Scroll to results
       setTimeout(() => {
         document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
-    }, 1500);
+
+    } catch (error) {
+      console.error("Error fetching prediction:", error);
+      // You might want to add error handling UI here
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getSubtypeColor = (subtype: string) => {
